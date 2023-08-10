@@ -111,7 +111,7 @@ if __name__ == '__main__':
     labels_to_ids = {k: v for v, k in enumerate(sorted(unique_labels))}
     ids_to_labels = {v: k for v, k in enumerate(sorted(unique_labels))}
     sentence = "Build a connection between contact trigger originating from bitrix24 and list all customers taking place in zoho."
-    [sentence, label] = evaluate_one_text(model, sentence)
-    sentence_list = sentence.split(" ")
-    for i in range(len(sentence_list)):
-        print(sentence_list[i], label[i])
+    print(evaluate_one_text(model, sentence))
+    # sentence_list = sentence.split(" ")
+    # for i in range(len(sentence_list)):
+    #     print(sentence_list[i], label[i])
