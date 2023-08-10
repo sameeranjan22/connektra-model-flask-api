@@ -6,6 +6,7 @@ import sys
 import json
 import pandas as pd
 import torch
+import random
 import numpy as np
 import requests, json
 from transformers import BertTokenizerFast, BertForTokenClassification
@@ -38,6 +39,11 @@ parser.add_argument(name='sentence',
 
 class Predict(Resource):
     def post(self):
+        validation_data = pd.read_csv('validation_dataset.csv')
+        randomNumber = random.randint(0, 9)
+        validation_template = validation_data.sample(n=1)
+        validation_template = validation_data.loc[randomNumber, 'Prompt']
+        print(validation_template)
         unique_labels = ['I-trigger', 'B-source', 'I-action', 'B-destination', 'B-trigger', 'B-action', 'O']
         model = BertModel()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,16 +54,21 @@ class Predict(Resource):
         ids_to_labels = {v: k for v, k in enumerate(sorted(unique_labels))}
         args = parser.parse_args()
         prompt = args["sentence"]
-        #print(prompt)
-        #print(sentence)
         results = evaluate_one_text(model, prompt)
-        #print(results)
+        source = results['source']
+        destination = results['destination']
+        trigger = results['trigger']
+        action = results['action']
+        validation_template = validation_template.replace(f"{{source}}", source)
+        validation_template = validation_template.replace(f"{{destination}}", destination)
+        validation_template = validation_template.replace(f"{{trigger}}", trigger)
+        validation_template = validation_template.replace(f"{{action}}", action)
         output = {'classification': [], }
-        #print(results)
         for variable, name in results.items():
             output['classification'].append({variable: name})
-        #print(output)
+        output['classification'].append({"return_statement": str(validation_template)})
         json_output = json.dumps(output)
+        #print(json_output)
         return json_output
 
 #curl -d '{"sentence": "Create a link between my new mention located in slack and get user in jira."}' -H 'Content-Type: application/json' localhost:5000/predict
